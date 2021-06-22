@@ -1,6 +1,6 @@
-# Robótica 2021.1 P2
+# Robótica 2021.1 SUB
 
-Robótica 2021 - Prova 2 - AF
+Robótica 2021 - SUB
 
 # Procedimento
 
@@ -17,7 +17,7 @@ O Blackboard deve ser mantido aberto todo o tempo
 [Enunciado da prova, só que no Jupyter para o preview do Github ficar bom](enunciado.ipynb)
 
 **Planilha de atendimento**
-Avise aqui se tiver problemas e ligamos para você. *Não* vamos dar manutenção básica nem explicar teoria hoje.   [https://docs.google.com/spreadsheets/d/13smFYtV2zI6kDAgRCNTJkAR-EWRTsTvKK0aTxoa31BE/edit?usp=sharing](https://docs.google.com/spreadsheets/d/13smFYtV2zI6kDAgRCNTJkAR-EWRTsTvKK0aTxoa31BE/edit?usp=sharing)
+Avise aqui se tiver problemas e ligamos para você. *Não* vamos dar manutenção básica nem explicar teoria hoje.   [)
 
 
 **Para entregar, faça commits e pushes regulares**

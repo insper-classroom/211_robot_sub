@@ -44,7 +44,7 @@ def encontra(imagem_bgr):
     ## Faça cv2.imshow para output visual
     cv2.imshow("Imagem na funcao procura", imagem_bgr)
 
-    return creme, chocolate, biscoitos, cookies, total_no_azul, total_no_vermelho
+    return creme, chocolate, biscoitos, cookies, total_no_azul, cookies_chocolate
 
 
 if __name__ == "__main__":
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     for i in range(len(frames)):
        
 
-        creme, chocolate, biscoitos, cookies, total_no_azul, total_no_vermelho = encontra(frames[i])
+        creme, chocolate, biscoitos, cookies, total_no_azul, cookies_chocolate = encontra(frames[i])
 
         if cv2.waitKey(2000) & 0xFF == ord('q'):
             break

@@ -2,7 +2,7 @@
 
 [Mais orientações no README](./README.md)
 
-## Prova P2 AF opção 2 de horário
+## Prova SUB
 
 **Você deve escolher somente 2 questões para fazer.**
 
@@ -21,7 +21,7 @@ Observações de avaliações nesta disciplina:
 * Caso haja alguma falha ou queda de conexão avise ao professor e reabra o Proctoring. 
 * Durante esta prova vamos registrar via Proctoring somente a tela, não a câmera nem microfone
 * Ponha o nome no enunciado da prova
-* Tenha os repositórios https://github.com/Insper/robot21.1/ ,  https://github.com/arnaldojr/my_simulation e https://github.com/arnaldojr/mybot_description.git  atualizados em seu `catkin_ws/src` .
+* Tenha os repositórios https://github.com/Insper/robot21.1/ ,  https://github.com/arnaldojr/my_simulation e https://github.com/arnaldojr/mybot_description.git  atualizados em seu `catkin_ws/src` .
 * Você pode consultar a internet ou qualquer material, mas não pode se comunicar com pessoas ou colegas a respeito da prova
 * Todos os códigos fornecidos estão executando perfeitamente. Foram testados no SSD da disciplina na versão 2021.1
 * Teste sempre seu código enquanto desenvolver
@@ -46,7 +46,7 @@ Se você tiver alguma evidência de cola ou fraude cometida nesta prova, [use es
 
 
 
-## Tabela para questões 1 e 3
+## Tabela para Questão 1
 
 Verifique neste link quais objetos deve conseguir [https://alinsperedu-my.sharepoint.com/:x:/g/personal/fabio_miranda_al_insper_edu_br/ESdAsClU06dHsqX7b-a_DOsBLQvWHSvSSRznrE7YoLvnng?e=fE88ia](https://alinsperedu-my.sharepoint.com/:x:/g/personal/fabio_miranda_al_insper_edu_br/ESdAsClU06dHsqX7b-a_DOsBLQvWHSvSSRznrE7YoLvnng?e=fE88ia)
 
@@ -89,58 +89,56 @@ Em seguida faça o [catkin_make](./instrucoes_setup.md).
 
 ## Questão 1 (5.00 pontos)
 
-<img src="./img/arucos_cores_v2.png" width=75%></img>
+<img src="./img/cruzamento.png" width=75%></img>
 
 
 Seu robô está no cenário visível abaixo:
 
 
-    roslaunch my_simulation encaixotado.launch
+    roslaunch my_simulation cruzamento.launch
 
 
 
 #### O que é para fazer
 
-Inicialmente fazer o robô sortear sempre um ângulo aleatório e fazer um giro correspondendo a este ângulo. 
+**Inicialmente** fazer o robô sortear sempre um ângulo aleatório e fazer um giro correspondendo a este ângulo. 
 
-**Depois** o robô vai precisar procurar as 2 caixas objetivo. Depois de localizar cada uma precisa haver uma mensagem clara no terminal de que encontrou e esperar 5 segundos com a caixa no campo de visão antes de prosseguir para a outra.
+**Passo 1** o robô vai precisar seguir em frente rapidamente até perceber que está a 0.6 m de bater em alguma coisa. 
 
-**Exemplo de objetivo:**
+**Passo 2** o robô vai procurar a bola verde e deve se aproximar dela até que esta esteja razoavelmente grande na visão do robô. Note que a bola está suspensa no ar, então depois que chega perto o bastante o robô deixa de vê-la porque esta fica acima dele.
 
-41 ciano depois 21 roxo.
+**Passo 3** Depois de se aproximar ao máximo da bola verde, o robô deve girar até procurar um objeto qualquer de sua cor designada pela tabela e se aproximar deste objeto. Está na coluna "Cor depois do verde"
 
-Neste caso o robô vai:
+**Passo 4** Quando se aproximar a pelo menos 1.5m do objeto da cor designada, deve girar novamente e procurar o ID aruco de interesse.  Está na coluna ID Aruco da tabela
 
-* dar um giro aleatório
-* depois procurar a caixa ciano que tem o aruco 41
-* depois de encontrar a caixa acima, dar uma mensagem e ficar com ela na visão por 5 segundos
-* depois procurar a caixa roxa que tem id 21 
-* depois de encontrar a última caixa, dar uma mensagem e ficar com ela na visão por 5s
+**Passo 5** 
+O robô deve se aproximar do ID aruco de interesse. 
 
-Talvez você ache o exemplo `util_aruco.py` que há na pasta scripts interessante.
+
 
 
 #### Detalhes de como rodar
 
 
-O código para este exercício está em: `p2_21/scripts/Q1.py`
+O código para este exercício está em: `psub21/scripts/Q1.py`
 
 
 
 Depois:
 
-    rosrun p2_21 Q1.py
+    rosrun psub21 Q1.py
 
 
 
 |Resultado| Conceito| 
 |---|---|
 | Não executa | 0 |
-| Sorteou o valor e deu giro aleatório | 0.5 | 
-| Procura a 1.a caixa da cor certa e centraliza nela | 1.2|
-| Centraliza corretamente na 1.a caixa levando em conta o id aruco certo | 2.5 |
-| Localiza a 2.a caixa levando em conta a cor certa | 3.5 |
-| Localiza a 2.a caixa levando em conta a cor e o id certos | 5.0 |
+| Sorteou o valor de um ângulo e deu giro aleatório | 0.2 | 
+| Foi em frente após o giro e parou a 0.6m de bater em alguma coisa | 1.2 | 
+| Localizou a bola verde dando sinal no prompt ou output visual | 2.0 | 
+| Chegou bem perto da bola verde | 2.5 | 
+| Encontrou o objeto da cor designada e parou a pelo menos 1.5m dele | 3.5 |
+| Encontrou o ID aruco designado e chegou perto o bastante dele | 5.0 |
 
 
 O giro aleatório pode ser em malha aberta (não precisa controlar por odometria)
@@ -149,58 +147,37 @@ Casos intermediários ou omissos da rubrica serão decididos pelo professor.
 
 
 
-## Questão 2  (3.33 pontos)
+## Questão 2  (5.00 pontos)
 
 
+Você deve desenvolver um programa que distingue dentre *cookies* e biscoitos, e consegue saber quantos são de chocolate e quantos são de leite. 
 
-Você precisa desenvolver um programa que procura em uma imagem grande sub imagens de interesse de tamanho 8x8 pixels em seu tamanho original, e também ampliadas para 16x16 ou reduzidas para 4x4. 
+Note que para fins desta prova, consideramos que os quadrados são biscoitos e os redondos são cookies.
 
-A imagem abaixo mostra como uma mesma imagem 8x8 pode ser ampliada para ocupar 16 x 16 pixels ou reduzida para 4 x 4. 
+Aqueles que forem marrons serão de chocolate, e a aqueles beges serão de leite. 
 
-Considere que as imagens 8x8 usadas não terão perda ao reduzir para 4x4, assim como na figura.
+<img src="img/q2_tipos_cookies.png">
 
-<img src="img/multiresolucao.png">
+Além disso, alguns dos cookies estão em sacos, e você precisará saber quantos estão em cada tipo de saco.
+
+Para facilitar, em vez de considerar as bordas exatas do saco você pode considerar que se está dentro da caixa limítrofe, estará dentro do saco.
+
+<img src="img/q2_limitrofe.png">
+
 
 **O que você deve fazer**
 
-A partir de uma imagem grande e da imagem 8x8 de interesse: 
-* Procurar todas as coordenadas linha x coluna `i,j` em que se iniciam aquelas imagens em escala original 
-* Procurar também a versão reduzida para 4 x 4
-* Procurar também a versão ampliada para 16 x 16
+Para as imagens, calcular: 
 
-Você deve armazenar cada para `i,j` encontrado como tupla em uma lista.  E dep os resultados correspondentes a cada resolução  num dicionário com as chaves 4, 8 e 16.  O exemplo deixará mais claro: 
-
-**Exemplo**
-
-Para a imagem grande, podemos procurar `q2/p2b_exemplo.png` a sub imagem `q2/p2b_exemplo_mini_8_8.png`
+* Quantos cookies e biscoitos sabor creme existem (independente de serem cookie ou biscoito)
+* Quantos cookies e biscoitos sabor chocolate existem (independente de serem cookie ou biscoito)
+* Quantos biscoitos existem no total 
+* Quantos cookies existem no total 
+* Qual o total que está em sacos azuis, independente do tipo 
+* Qual o total de cookies de chocolate, onde quer que estejam 
 
 
-Imagem grande:
 
-<img src="q2/p2b_exemplo.png" width=100%>
-
-
-Imagem 8x8 a procurar:
-
-
-<img src="q2/exemplo_ampliado.png">
-
-Vemos que dentro da imagem grande, o padrão 8x8 de busca aparece nas resoluções 4x4, 16x16 e 8x8. Portanto seu código deveria retornar o dicionário:
-
-```python
-{16: [(9, 14), (16, 9), (11, 1), (3, 16), (10, 4), (3, 14), (2, 6)],
- 4: [(3, 10), (1, 4), (10, 2), (5, 2), (11, 9), (12, 11)],
- 8: [(3, 5), (9, 5), (7, 14)]}
-```
-
-A posição que vai para a lista é a posição **dentro da imagem grande** em que a imagem pequena aparece.
-
-A chave 4 indexa no dicionário a lista de posições `i,j`em que o padrão fornecido aparece reduzido. 
-Lembramos que o que conta como posição inicial é o canto superior esquerdo das imagens.
-
-Você pode usar este exemplo para testar seu código.   O programa invoca ainda 3 outras imagens de testes.
-
-**Você deve programar na função procurar** que recebe a imagem grande e o padrão 8x8 e devolve o dicionário com as listas
 
 
 #### Orientações
@@ -211,64 +188,68 @@ Trabalhe no arquivo `q2/q2.py`. Este exercício **não precisa** de ROS. Portant
 |Resultado| Conceito| 
 |---|---|
 | Não executa | zero |
-|Devolve dicionário com lista com posições i j das imagens 8x8 | 2.5|
-|Além do acima, lista com posições i j das imagens 4x4 | 3.75|
-|Além do acima, lista com posições i j das imagens 16x16 | 5.00 | 
+|Total de creme| 0.75|
+|Total de chocolate | +0.75|
+|Anteriores + total biscoitos | 2.5 |
+|Total cookies | 3.0 |
+|Total em sacos azuis | 4.0 |
+|Total de cookies de chocolate | 5.0 |
+
+
 
 ## Questão 3 (5.00 pontos)
 
-<img src="./img/obstaculos.png" width=75%></img>
+<img src="./img/labirinto_vision.png" width=75%></img>
 
 
 Seu robô está no cenário visível abaixo:
 
 
-    roslaunch my_simulation corrida_de_obstaculos.launch
+    roslaunch my_simulation labirinto_vision.launch
 
 
+
+Sabe-se que se um robô seguir uma parede em um labirinto virando sempre para o mesmo lado  quando encontra um obstáculo (direita ou esquerda) eventualmente vai acabar saindo do labirinto. 
+
+Você tem um código-base com várias informações: 
+
+* Imagem da câmera - que pode ser usada para fazer ponto de fuga, por exemplo 
+* Imagem "vista" pelo laser
+* Retorno do laserscan
 
 #### O que é para fazer
 
-Sortear um ângulo entre 0 e 360 graus 
-
-Fazer o robô dar um giro correspondente ao ângulo em malha aberta
-
-De acordo com a cor de sua pista na planilha (veja acima) o robô deve começar a seguir a pista.
-
-O robô precisa detectar **de alguma forma** que passou por baixo de um portal amarelo. Depois de passar por cada portal o robô deve levantar a garra e jogar o portal para trás.
-
-Sobre a deteção: 
-* Você pode usar lasers
-* Aruco
-* Ou qualquer outro mecanismo
-
-
-**Execute o controlador do braço com mybot control**
-
-Talvez você ache [este exemplo de montar um "mapa" com o laser útil](https://github.com/mirwox/prova1_2020/blob/solution/gabarito.md)
+Faça o robô seguir as paredes sempre virando para o mesmo lado, até conseguir sair do labirinto. Você pode se basear nas imagens ou no laserscan bruto. 
 
 #### Detalhes de como rodar
 
-
-O código para este exercício está em: `p2_21/scripts/Q3.py`
+O código para este exercício está em: `psub21/scripts/Q3.py`
 
 Para rodar, recomendamos que faça:
 
-    roslaunch my_simulation corrida_de_obstaculos.launch
+    roslaunch my_simulation labirinto_vision.launch
 
 Depois:
 
-    rosrun p2_21 Q3.py
+    rosrun psub21 Q3.py
 
+
+**Seu robô precisa comunicar o que está fazendo dando prints ou fazendo saídas na tela**
 
 
 |Resultado| Conceito| 
 |---|---|
 | Não executa | 0 |
-| Faz o robo dar um giro aleatório | 0.5 |
-| Localiza a pista da cor pretendida segmentando direito | 1.0 |
-| Faz o robô seguir a pista correta | 2.5 |
-| Detecta de alguma forma que passo embaixo dos portais dando output visível | 3.75 |
-| Consegue terminar a parte da pista de sua cor derrubando todos os portais | 5.0 |
+| Tenta se alinhar a uma parede para ir em frente | 1.0 |
+| Demonstra tentar seguir em paralelo a uma parede dando algum output  | 2.0 |
+| Ao encontrar um obstáculo à frente detecta dando output visual  | 2.5 |
+| Demonstra pelo menos 2 giros para o mesmo lado depois de encontrar o obstáculo  | 3.5 |
+| Consegue sair  | 5.0 |
+
+
+
+
+
+
 
 
