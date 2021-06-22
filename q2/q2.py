@@ -22,61 +22,29 @@ def cvt(gray_bgr):
 ## USe isto para testar seu programa
 
 
-padrao_gabarito = cv2.imread("p2b_exemplo_mini_8_8.png")
-imagem_gabarito = cv2.imread("p2b_exemplo.png")
+filenames = "cookies01.png cookies02.png cookies03.png cookies03.png".split()
 
-padrao_gabarito = cvt(padrao_gabarito)
-imagem_gabarito = cvt(imagem_gabarito)
-
-# Fim dos valores de conferencia
-
-padrao1 = cv2.imread("q2_img_1_mini.png")
-padrao2 = cv2.imread("q2_img_2_mini.png")
-padrao3 = cv2.imread("q2_img_3_mini.png")
-
-padroes = [padrao1, padrao2, padrao3]
-
-padroes = [cvt(img) for img in padroes]
-
-teste1 = cv2.imread("q2_img_1.png")
-teste2 = cv2.imread("q2_img_2.png")
-teste3 = cv2.imread("q2_img_3.png")
-
-frames = [teste1, teste2, teste3]
-
-frames = [cvt(f) for f in frames]
-
-
-
-
+frames = [cv2.imread(f) for f in filenames]
 
 
 # Trabalhe nesta função
 # Pode criar e chamar novas funções o quanto quiser
-def procura(frame_gray, imagem8x8gray): 
+def encontra(imagem_bgr): 
     """ Recebe uma imagem grande e uma sub imagem e devolve um dicionário com chaves 4, 8 e 16
         em cada posição contendo uma lista de tuplas i,j com os encontros daquelas resolucoes
     """      
-    
-    # Esta é apenas a saída para a imagem de teste. Obviamente você deve criar o seu
-    return {16: [(9, 14), (16, 9), (11, 1), (3, 16), (10, 4), (3, 14), (2, 6)],
- 4: [(3, 10), (1, 4), (10, 2), (5, 2), (11, 9), (12, 11)],
- 8: [(3, 5), (9, 5), (7, 14)]}
 
-## Adicionados DEPOIS da prova para melhorar a clareza
+    creme = 0
+    chocolate = 0
+    biscoitos = 0
+    cookies = 0 
+    total_no_azul = 0
+    total_no_vermelho = 0
 
-def resize_big(img, scale):
-    """ Resizes a grayscale image"""
-    out_size = np.array(img.shape)*int(scale)
-    print(img.shape, out_size)
-    return cv2.resize(src=img, dsize=tuple(out_size), interpolation=cv2.INTER_NEAREST)
+    ## Faça cv2.imshow para output visual
+    cv2.imshow("Imagem na funcao procura", imagem_bgr)
 
-def resize_big_color(img, scale):
-    """ Resizes a grayscale image"""
-    out_size = np.array(img.shape)*int(scale)
-    out_size = out_size[:-1]
-    print(img.shape, out_size)
-    return cv2.resize(src=img, dsize=tuple(out_size), interpolation=cv2.INTER_NEAREST)
+    return creme, chocolate, biscoitos, cookies, total_no_azul, total_no_vermelho
 
 
 if __name__ == "__main__":
@@ -89,18 +57,11 @@ if __name__ == "__main__":
 
         
     for i in range(len(frames)):
-        dicionario = procura(frames[i], padroes[i])
-        print("resultado encontrado", dicionario)
+       
 
-        imagem_grande = resize_big(frames[i], 2)
-        padrao_grande = resize_big(padroes[i], 16 )
+        creme, chocolate, biscoitos, cookies, total_no_azul, total_no_vermelho = encontra(frames[i])
 
-
-        # NOTE que em testes a OpenCV 4.0 requereu frames em BGR para o cv2.imshow
-        cv2.imshow('Imagem de entrada', imagem_grande)
-        cv2.imshow('Padrao', padrao_grande)
-
-        if cv2.waitKey(1500) & 0xFF == ord('q'):
+        if cv2.waitKey(2000) & 0xFF == ord('q'):
             break
 
 
