@@ -2,120 +2,188 @@
 # -*- coding:utf-8 -*-
 
 from __future__ import print_function, division
-import rospy
+
+
+# Para rodar, recomendamos que faça:
+# 
+#    roslaunch my_simulation cruzamento.launch
+#
+# Depois para rodar este faça: 
+#
+#   rosrun psub21 Q1.py
+
+
+
+import rospy 
+
 import numpy as np
-import numpy
-import tf
-import math
+
 import cv2
-from nav_msgs.msg import Odometry
+import cv2.aruco as aruco
+
+from geometry_msgs.msg import Twist, Vector3
+from sensor_msgs.msg import LaserScan
 from sensor_msgs.msg import Image, CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
-from numpy import linalg
-from tf import transformations
-from tf import TransformerROS
-import tf2_ros
-from geometry_msgs.msg import Twist, Vector3, Pose, Vector3Stamped
+from std_msgs.msg import Float64
 
-from nav_msgs.msg import Odometry
-from std_msgs.msg import Header
+import math
 
 
-import visao_module
-
+ranges = None
+minv = 0
+maxv = 10
 
 bridge = CvBridge()
 
-cv_image = None
-media = []
-centro = []
-atraso = 1.5E9 # 1 segundo e meio. Em nanossegundos
+### REsposta feita na revisao em 08/6/21
 
 
-area = 0.0 # Variavel com a area do maior contorno
+def processa_com_mascara(bgr): 
+    """ recebe uma imagem bgr e devolve o centro de massa do maior contorno amarelo"""
+    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
+    low = np.array([ 0, 50,50],dtype=np.uint8 )
+    high = np.array([ 120, 255,255],dtype=np.uint8 )
+    mask = cv2.inRange(hsv, low, high)
 
-# Só usar se os relógios ROS da Raspberry e do Linux desktop estiverem sincronizados. 
-# Descarta imagens que chegam atrasadas demais
-check_delay = False 
+    return mask
 
-resultados = [] # Criacao de uma variavel global para guardar os resultados vistos
+## Codigo vindo da aula 03 
 
-x = 0
-y = 0
-z = 0 
-id = 0
+def center_of_mass(mask):
+    """ Retorna uma tupla (cx, cy) que desenha o centro do contorno"""
+    M = cv2.moments(mask)
+    # Usando a expressão do centróide definida em: https://en.wikipedia.org/wiki/Image_moment
+    m00 = max(1, M["m00"])
+    cX = int(M["m10"] / m00) # para nao dar divisao por zero quando o contorno tem só 1 px
+    cY = int(M["m01"] / m00)
+    return [int(cX), int(cY)]
 
-frame = "camera_link"
-# frame = "head_camera"  # DESCOMENTE para usar com webcam USB via roslaunch tag_tracking usbcam
+def crosshair(img, point, size, color):
+    """ Desenha um crosshair centrado no point.
+        point deve ser uma tupla (x,y)
+        color é uma tupla R,G,B uint8
+    """
+    x,y = point
+    cv2.line(img,(x - size,y),(x + size,y),color,5)
+    cv2.line(img,(x,y - size),(x, y + size),color,5)
 
-tfl = 0
+def center_of_mass_region(mask, x1, y1, x2, y2):
+    # Para fins de desenho
+    mask_bgr = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+    clipped = mask[y1:y2, x1:x2]
+    c = center_of_mass(clipped)
+    c[0]+=x1
+    c[1]+=y1
+    crosshair(mask_bgr, c, 10, (0,0,255))
+    cv2.rectangle(mask_bgr, (x1, y1), (x2, y2), (255,0,0),2,cv2.LINE_AA)
+    return mask_bgr, c
 
-tf_buffer = tf2_ros.Buffer()
+aruco_dict  = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
+
+def detecta_aruco(bgr, dict_aruco):
+
+    gray = cv2.cvtColor(bgr, cv2.COLOR_BGR2GRAY)
+
+    #--- Define the aruco dictionary
+    # parameters  = aruco.DetectorParameters_create()
+    # parameters.minDistanceToBorder = 0
+    # parameters.adaptiveThreshWinSizeMax = 1000
+
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict) #, parameters=parameters)
+
+
+    aruco.drawDetectedMarkers(bgr, corners, ids)
+
+    return corners, ids 
+
+
+centro_imagem = [320, 240]
+centro_massa_amarelo = [320,240]
+
+ids_vistos = []
+
+###
 
 
 
+def scaneou(dado):
+    global ranges
+    global minv
+    global maxv
+    print("Faixa valida: ", dado.range_min , " - ", dado.range_max )
+    print("Leituras:")
+    ranges = np.array(dado.ranges).round(decimals=2)
+    minv = dado.range_min 
+    maxv = dado.range_max
+ 
 # A função a seguir é chamada sempre que chega um novo frame
 def roda_todo_frame(imagem):
+    global centro_massa_amarelo
+    global centro_imagem
+
     print("frame")
-    global cv_image
-    global media
-    global centro
-    global resultados
-
-    now = rospy.get_rostime()
-    imgtime = imagem.header.stamp
-    lag = now-imgtime # calcula o lag
-    delay = lag.nsecs
-    # print("delay ", "{:.3f}".format(delay/1.0E9))
-    if delay > atraso and check_delay==True:
-        # Esta logica do delay so' precisa ser usada com robo real e rede wifi 
-        # serve para descartar imagens antigas
-        print("Descartando por causa do delay do frame:", delay)
-        return 
     try:
-        temp_image = bridge.compressed_imgmsg_to_cv2(imagem, "bgr8")
-        # Note que os resultados já são guardados automaticamente na variável
-        # chamada resultados
-        centro, saida_net, resultados =  visao_module.processa(temp_image)        
-        for r in resultados:
-            # print(r) - print feito para documentar e entender
-            # o resultado            
-            pass
+        cv_image = bridge.compressed_imgmsg_to_cv2(imagem, "bgr8")
+        #cv2.imshow("Camera", cv_image)
 
-        # Desnecessário - Hough e MobileNet já abrem janelas
-        cv_image = saida_net.copy()
-        cv2.imshow("cv_image", cv_image)
+        mask = processa_com_mascara(cv_image)
+
+
+        larg = mask.shape[1]
+        alt  = mask.shape[0]
+        inicio_y = int(alt/2)
+        fim_y = int((3/4)*alt)
+
+        centro_imagem = [int(larg/2), int(alt/2)]
+
+        mask_bgr, cm = center_of_mass_region(mask, 0, inicio_y, larg, fim_y)
+        
+        centro_massa = cm
+
+        cv2.imshow("Centro de massa", mask_bgr)
+
+        corners, ids = detecta_aruco(cv_image, aruco_dict)
+
+        cv2.imshow("Filtro", cv_image)
+
+        ids_vistos.clear()
+
+        tamanho_min = 50
+
+        if ids is not None and len(ids) > 0: 
+
+            for i in range(len(ids)):
+                ids_vistos.append(ids[i])
+                    
         cv2.waitKey(1)
     except CvBridgeError as e:
         print('ex', e)
-    
+
 if __name__=="__main__":
-    rospy.init_node("cor")
+
+    rospy.init_node("q3")
 
     topico_imagem = "/camera/image/compressed"
-
+    velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 3 )
+    recebe_scan = rospy.Subscriber("/scan", LaserScan, scaneou)
     recebedor = rospy.Subscriber(topico_imagem, CompressedImage, roda_todo_frame, queue_size=4, buff_size = 2**24)
 
+    ombro = rospy.Publisher("/joint1_position_controller/command", Float64, queue_size=1)
 
-    print("Usando ", topico_imagem)
+    max_w = 1.4 # rad 
+    v_frente = 0.4 
+    max_delta = 640/2
 
-    velocidade_saida = rospy.Publisher("/cmd_vel", Twist, queue_size = 1)
-
-    tfl = tf2_ros.TransformListener(tf_buffer) #conversao do sistema de coordenadas 
-    tolerancia = 25
-
-    try:
-        # Inicializando - por default gira no sentido anti-horário
-        vel = Twist(Vector3(0,0,0), Vector3(0,0,math.pi/10.0))
-        
-        while not rospy.is_shutdown():
-            for r in resultados:
-                print(r)
-            
-            velocidade_saida.publish(vel)
-            rospy.sleep(0.1)
-
-    except rospy.ROSInterruptException:
-        print("Ocorreu uma exceção com o rospy")
+    zero = Twist(Vector3(0,0,0), Vector3(0,0,0))
+    giro = Twist(Vector3(0,0,0), Vector3(0,0,0.7))
 
 
+    nao_terminou = True 
+
+
+    estado = "INICIAL"
+
+
+    while not rospy.is_shutdown():
+        rospy.sleep(0.05)
